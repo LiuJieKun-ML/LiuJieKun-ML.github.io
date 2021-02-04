@@ -149,18 +149,7 @@
           this.dp.switchVideo({ url: this.videoList[index].url });
           this.dp.play();
         },
-        // 视频播放器
-        createDplayer() {
-          this.dp = new DPlayer({
-            container: this.$refs.dplayer,
-            video: {
-              url: this.videoList[0].url,
-              type: "hls",
-            },
-          });
-          // 移除默认菜单
-          this.dp.template.menu.remove();
-        },
+       
         // 音频播放器
         createAplayer() {
           this.ap = new APlayer({
