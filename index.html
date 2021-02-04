@@ -114,9 +114,53 @@
   <script src="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.min.js"></script>
 
   <script>
-    
-   
-       
+    new Vue({
+      el: "#app",
+      data: function () {
+        return {
+          dp: null,
+          videoList: [
+            {
+              name: "2009-我爱南京跨年演唱会",
+              url:
+                "https://cdn.jsdelivr.net/gh/goldsubmarine/lizhi-resource@master/video/2009-我爱南京跨年演唱会/playlist.m3u8",
+            },
+            {
+              name: "2014-IO跨年演唱会",
+              url:
+                "https://cdn.jsdelivr.net/gh/goldsubmarine/lizhi-resource@master/video/2014-IO跨年演唱会/playlist.m3u8",
+            },
+            {
+              name: "2015-看见北京站直播实录",
+              url:
+                "https://cdn.jsdelivr.net/gh/goldsubmarine/lizhi-resource@master/video/2015-看见北京站直播实录/playlist.m3u8",
+            },
+          ],
+        };
+      },
+      mounted() {
+        this.createAplayer();
+        this.createDplayer();
+        this.createDriver();
+      },
+      methods: {
+        handleSelect(index, indexPath) {
+          this.videoList[index];
+          this.dp.switchVideo({ url: this.videoList[index].url });
+          this.dp.play();
+        },
+        // 视频播放器
+        createDplayer() {
+          this.dp = new DPlayer({
+            container: this.$refs.dplayer,
+            video: {
+              url: this.videoList[0].url,
+              type: "hls",
+            },
+          });
+          // 移除默认菜单
+          this.dp.template.menu.remove();
+        },
         // 音频播放器
         createAplayer() {
           this.ap = new APlayer({
