@@ -220,48 +220,7 @@
             this.ap.pause()
           }
         },
-        // 指引
-        createDriver() {
-          let driver = new Driver({
-            animate: true,
-            opacity: 0.7,
-            doneBtnText: "完成",
-            closeBtnText: "关闭",
-            nextBtnText: "下一步",
-            prevBtnText: "上一步",
-            showButtons: true,
-          });
-          driver.defineSteps([
-            {
-              element: "#aside-menu",
-              popover: {
-                title: "☀️ 演唱会列表",
-                description: "目前只收集了3场演唱会，欢迎提供视频源或直接 PR",
-                position: "right",
-              },
-            },
-            {
-              element: ".aplayer-pic",
-              popover: {
-                title: "🎸 音乐播放器",
-                description:
-                  "共收录 249 首歌曲，覆盖大部分专辑和演唱会 LIVE 直播",
-                position: "right-bottom",
-                offset: -30,
-              },
-            },
-            {
-              element: "#github-link",
-              popover: {
-                title: "🎨 Github",
-                description: "如需下载音频文件，请点这里。欢迎 ✨star✨",
-                position: "left",
-                offset: 30,
-              },
-            },
-          ]);
-          driver.start();
-        },
+    
       },
     });
   </script>
