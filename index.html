@@ -1,13 +1,347 @@
+
 <!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>南京李志</title>
-</head>
-<body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>南京李志</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.min.css"
+    />
+    <link
+      rel="icon"
+      href="https://cdn.jsdelivr.net/gh/nj-lizhi/song@master/audio/cover.png"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/element-ui@2.15.1/lib/theme-chalk/index.css"
+    />
+    <style>
+      .dplayer-video-wrap .dplayer-video {
+        height: 80vh !important;
+      }
+      @media screen and (max-width: 768px) {
+        .dplayer-video-wrap .dplayer-video {
+          height: 40vh !important;
+        }
+      }
+      @media screen and (max-width: 768px) {
+        .aplayer.aplayer-fixed{
+          max-width: none;
+        }
+      }
+      [v-cloak] {
+        display: none;
+      }
+      #aplayer-search {
+        position: sticky;
+        bottom: 0px;
+        background-color: #e9e9e9;
+        cursor: auto;
+        padding-top: 2px;
+      }
+      #aplayer-search input {
+        font-size: 13px;
+        box-sizing: border-box;
+        width: calc(100% - 116px);
+        border: 1px solid #ccc;
+        padding: 4px 8px;
+        border-radius: 3px;
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+        transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+      }
+      #aplayer-search input:focus {
+        border-color:#66afe9;
+        outline:0;
+      }
+      #aplayer-search button {
+        font-size: 12px;
+      }
+      .main {
+        display: flex;
+        flex-wrap: nowrap;
+      }
+      .download-btn {
+        position: fixed;
+        bottom: 14px;
+        left: 100px;
+      }
+      @media screen and (min-width: 768px) {
+        .main aside {
+          width: 300px;
+          margin-right: 20px;
+        }
+      }
+      .main .wrap-dplayer {
+        flex-grow: 1;
+        margin-right: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    
+    <div id="app" v-cloak>
+      <div ref="aplayer"></div>
+      <el-button class="download-btn" type="primary" @click="drawer = true" plain icon="el-icon-download">下载歌曲</el-button>
+      <el-drawer title="下载歌曲" :visible.sync="drawer" direction="rtl" :wrapperClosable="false" :size="isMobile ? '100%' : '40%'">
+        <el-table :data="songList" @selection-change="handleDownloadSelect" width="800px" :max-height="computedTableHeight">
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column property="name" label="歌名"></el-table-column>
+          <el-table-column property="artist" label="专辑"></el-table-column>
+        </el-table>
+        <el-alert :title="isMobile ? '当前为手机环境，歌曲一共10个G，请注意手机容量，建议部分下载或打开电脑下载' : '点击下载后，注意左上角弹窗，需同意下载多个文件'" type="info" show-icon></el-alert>
+        <el-progress 
+          :percentage="percentage" 
+          :text-inside="true"
+          :stroke-width="20"
+          style="margin: 10px;" 
+          :format="percentage => `${(percentage/100*downloadSongList.length).toFixed()}/${downloadSongList.length}`"
+        ></el-progress>
+        <div style="margin-left: 20px;">
+          <el-button @click="handleDownloadSong" type="primary" :disabled="downloadSongList.length == 0" :loading="downloading">下载选中歌曲</el-button>
+        </div>
+      </el-drawer>
+      <header>
+        <h3 style="margin: 30px;">🎉🎉 南京李志演唱会</h3>
+      </header>
+      <main class="main">
+        <aside>
+          <el-menu default-active="0" id="aside-menu" @select="handleSelect" :collapse="isPhone()">
+            <el-menu-item
+              v-for="(item, index) in videoList"
+              :key="index"
+              :index="String(index)"
+            >
+              <i class="el-icon-menu"></i>
+              <span slot="title">{{ item.name }}</span>
+            </el-menu-item>
+          </el-menu>
+        </aside>
+        <div class="wrap-dplayer">
+          <div ref="dplayer"></div>
+        </div>
+      </main>
+    </div>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.1/lib/index.js"></script>
 
-<h1>本站暂停运营</h1>
-<p>本人是大一学生，因热爱摇滚乐冒种种风险及高昂的运营成本公益做本站，最近因部分乐迷的不尊重导致无力继续运营，此站暂时关闭。具体开启时间可联系鄙人（VX: wnqnld2002）</p>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@0.14.4/dist/hls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dplayer@1.26.0/dist/DPlayer.min.js"></script>
 
-</body>
+  <script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/nj-lizhi/song@master/audio/list.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.min.js"></script>
+
+  <script>
+    new Vue({
+      el: "#app",
+      data: function () {
+        return {
+          dp: null,
+          songList: list,
+          drawer: false,
+          percentage: 0,
+          downloading: false,
+          downloadSongList: [],
+          videoList: [
+            {
+              name: "2009-我爱南京跨年演唱会",
+              url:
+                "https://cdn.jsdelivr.net/gh/nj-lizhi/kn-2009-wanj@master/video/playlist.m3u8",
+            },
+            {
+              name: "2014-IO跨年演唱会",
+              url:
+                "https://cdn.jsdelivr.net/gh/nj-lizhi/kn-2014-io@master/video/playlist.m3u8",
+            },
+            {
+              name: "2015-看见北京站直播实录",
+              url:
+                "https://cdn.jsdelivr.net/gh/nj-lizhi/kn-2015-kj@master/video/playlist.m3u8",
+            },
+            {
+              name: "2018-洗心革面跨年演唱会",
+              url:
+                "https://cdn.jsdelivr.net/gh/nj-lizhi/kn-2018-xxgm@master/video/playlist.m3u8",
+            },
+          ],
+        };
+      },
+      mounted() {
+        this.createAplayer();
+        this.createDplayer();
+        this.createDriver();
+      },
+      computed: {
+        computedTableHeight() {
+          return window.innerHeight - 240
+        },
+        isMobile() {
+          return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent)
+        }
+      },
+      methods: {
+        handleSelect(index, indexPath) {
+          this.videoList[index];
+          this.dp.switchVideo({ url: this.videoList[index].url });
+          this.dp.play();
+        },
+        handleDownloadSelect(songList) {
+          this.downloadSongList = songList
+          this.percentage = 0
+        },
+        handleDownloadSong() {
+          this.downloading = true
+          let nextIndex = 0
+          let taskNum = 0
+          let timer = setInterval(() => {
+            if(taskNum < 3) {
+              let item = this.downloadSongList[nextIndex]
+              taskNum++
+              nextIndex++
+              fetch(item.url).then(res => {
+                res.blob().then(blob => {
+                  let a = document.createElement('a');
+                  let url = window.URL.createObjectURL(blob); 
+                  a.href = url;
+                  a.download = item.name;
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  this.percentage = nextIndex/this.downloadSongList.length*100
+                  taskNum--
+                  if(nextIndex === this.downloadSongList.length) this.downloading = false
+                })
+              })
+            }
+            if(nextIndex === this.downloadSongList.length) clearInterval(timer)
+          }, 50)
+        },
+        // 视频播放器
+        createDplayer() {
+          this.dp = new DPlayer({
+            container: this.$refs.dplayer,
+            video: {
+              url: this.videoList[0].url,
+              type: "hls",
+            },
+          });
+          // 移除默认菜单
+          this.dp.template.menu.remove();
+        },
+        // 音频播放器
+        createAplayer() {
+          this.ap = new APlayer({
+            container: this.$refs.aplayer,
+            audio: list,
+            fixed: true,
+            listMaxHeight: "calc(100vh - 66px)",
+          });
+          // 增加搜索
+          this.addAplayerSearch();
+        },
+        // 增加音频搜索
+        addAplayerSearch() {
+          let songListHtml = this.$refs.aplayer.querySelector("ol");
+          songListHtml.innerHTML += `
+            <li id="aplayer-search">
+              <input type="text" placeholder="搜索歌名或专辑">
+              <button id="pre-song">上一首</button>
+              <button id="next-song">下一首</button>
+            </li>
+          `
+          let aplayerSearchDom = document.getElementById("aplayer-search");
+          let inputSearchDom = aplayerSearchDom.querySelector("input");
+          let preButtomDom = document.getElementById("pre-song");
+          let nextButtomDom = document.getElementById("next-song");
+          aplayerSearchDom.onclick = ev => {
+            let onEvent = ev || event;
+            onEvent.cancelBubble = true;
+            onEvent.stopPropagation();
+          };
+          let indexArr = []
+          let nowIndex = null
+          inputSearchDom.oninput = () => {
+            indexArr = []
+            nowIndex = null
+            list.forEach((item, index) => {
+              if(item.name.indexOf(inputSearchDom.value) !== -1
+                || item.artist.indexOf(inputSearchDom.value) !== -1
+              ) {
+                indexArr.push(index)
+              };  
+            })
+            if(indexArr.length > 0) {
+              this.ap.list.switch(indexArr[0])
+              this.ap.pause()
+              nowIndex = 0
+            }
+    　　　};
+          preButtomDom.onclick = () => {
+            if(nowIndex === 0) nowIndex = indexArr.length
+            this.ap.list.switch(indexArr[--nowIndex])
+            this.ap.pause()
+          }
+          nextButtomDom.onclick = () => {
+            if(indexArr.length === nowIndex + 1) nowIndex = -1
+            this.ap.list.switch(indexArr[++nowIndex])
+            this.ap.pause()
+          }
+        },
+        // 指引
+        createDriver() {
+          if(document.cookie.indexOf("isFirstVisit=false") !== -1) return;
+          document.cookie = "isFirstVisit=false";
+          let driver = new Driver({
+            animate: true,
+            opacity: 0.7,
+            doneBtnText: "完成",
+            closeBtnText: "关闭",
+            nextBtnText: "下一步",
+            prevBtnText: "上一步",
+            showButtons: true,
+          });
+          driver.defineSteps([
+            {
+              element: "#aside-menu",
+              popover: {
+                title: "☀️ 演唱会列表",
+                description: "目前只收集了4场演唱会，欢迎向我(WX: wnqnld2002)提供视频源",
+                position: "right",
+              },
+            },
+            {
+              element: ".aplayer-pic",
+              popover: {
+                title: "🎸 音乐播放器",
+                description:
+                  "共收录 249 首歌曲，覆盖大部分专辑和演唱会 LIVE 直播",
+                position: "right-bottom",
+                offset: -30,
+              },
+            },
+            {
+              element: "#github-link",
+              popover: {
+                title: "🎨 Github",
+                description: "如需下载音频文件，请点这里。<br />欢迎 ✨star✨",
+                position: "left",
+                offset: 30,
+              },
+            },
+          ]);
+          driver.start();
+        },
+        isPhone() {
+          return window.screen.width < 768
+        },
+      },
+    });
+  </script>
 </html>
